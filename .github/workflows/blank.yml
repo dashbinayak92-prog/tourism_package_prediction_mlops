@@ -1,0 +1,52 @@
+
+name: CI/CD Pipeline for Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-hf-space:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install huggingface_hub
+        pip install pandas scikit-learn joblib uvicorn fastapi
+
+    - name: Log in to Hugging Face
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: |
+        huggingface-cli login --token $HF_TOKEN
+
+    - name: Get latest model and deployment files
+      run: |
+        # Download the model and deployment files from the workspace or local storage
+        # Assuming app.py, Dockerfile, requirements.txt, and model are in the root directory
+        # In a real GitHub Actions workflow, these would be part of the checkout
+        echo "Deployment files are part of the checkout."
+
+    - name: Build and push Docker image to Hugging Face Space
+      env:
+        HF_USERNAME: ${{ secrets.HF_USERNAME }}
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: |
+        DOCKER_IMAGE_NAME="spaces/${{ secrets.HF_USERNAME }}/tourism-propensity-space-deployment"
+        docker build -t $DOCKER_IMAGE_NAME .
+        docker push $DOCKER_IMAGE_NAME
+
+
+
+
